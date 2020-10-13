@@ -10,4 +10,6 @@
     <string name="text_detect_error">Error while detecting text!</string>
     <string name="detected_text_in_english_heading">Detected Text in English</string>
     <string name="mapped_to_grade_1_braille_heading">Mapped to Grade 1 Braille</string>
+    <string name="not_yet_implemented">Not Yet Implemented!</string>
+    <string name="error_detecting_objects">Error while detecting objects!</string>
 </resources>

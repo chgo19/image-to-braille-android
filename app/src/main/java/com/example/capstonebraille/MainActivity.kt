@@ -1,21 +1,20 @@
 package com.example.capstonebraille
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.drawable.toBitmap
-import com.google.android.gms.tasks.Task
+import com.google.mlkit.common.model.LocalModel
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.objects.DetectedObject
+import com.google.mlkit.vision.objects.ObjectDetection
+import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions
+import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
+import com.google.mlkit.vision.objects.defaults.PredefinedCategory
 import com.google.mlkit.vision.text.TextRecognition
-import org.w3c.dom.Text
-import java.io.IOException
 import java.lang.Exception
 
 const val TEXT_MESSAGE = "com.example.capstonebraille.TEXT"
@@ -51,7 +50,9 @@ class MainActivity : AppCompatActivity() {
         startActivityForResult(selectImageIntent, _selectIntent)
     }
 
-    fun captureImage(view: View) {}
+    fun captureImage(view: View) {
+        showToast(getString(R.string.not_yet_implemented))
+    }
 
     fun detectText(view: View) {
         showToast(getString(R.string.text_detection_start))
@@ -84,7 +85,59 @@ class MainActivity : AppCompatActivity() {
         startActivity(textResultIntent)
     }
 
-    fun detectObjects(view: View) {}
+    fun detectObjects(view: View) {
+        val image: InputImage
+        try {
+            image = InputImage.fromFilePath(this, imageViewMainUri)
+
+            val localModel = LocalModel.Builder()
+                .setAssetFilePath("lite-model_object_detection_mobile_object_labeler_v1_1.tflite")
+                .build()
+
+            val customObjectDetectorOptions =
+                CustomObjectDetectorOptions.Builder(localModel)
+                    .setDetectorMode(CustomObjectDetectorOptions.SINGLE_IMAGE_MODE)
+                    .enableMultipleObjects()
+                    .enableClassification()
+                    .setClassificationConfidenceThreshold(0.5f)
+                    .setMaxPerObjectLabelCount(3)
+                    .build()
+
+//            showToast("here")
+            val objectDetector = ObjectDetection.getClient(customObjectDetectorOptions)
+
+            objectDetector.process(image)
+                .addOnFailureListener { e ->
+                    // Task failed with an exception
+                    showToast(e.message.toString())
+                }
+                .addOnSuccessListener { detectedObjects ->
+                    // Task completed successfully
+                    showDetectObjectsResult(detectedObjects)
+                }
+        } catch (e: Exception) {
+            showToast(getString(R.string.error_detecting_objects))
+            e.printStackTrace()
+        }
+    }
+
+    private fun showDetectObjectsResult(results: MutableList<DetectedObject>) {
+        val objectsString = StringBuilder()
+        for (detectedObject in results) {
+            for (label in detectedObject.labels) {
+                val confidence = label.confidence
+//                if (confidence > 0) {
+                objectsString.append(label.text)
+                objectsString.append("\n")
+//                }
+            }
+        }
+        showToast(objectsString.toString())
+        val textResultIntent = Intent(this, DisplayTextResultActivity::class.java).apply {
+            putExtra(TEXT_MESSAGE, objectsString.toString())
+        }
+        startActivity(textResultIntent)
+    }
 
     private fun showToast(s: String) {
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
