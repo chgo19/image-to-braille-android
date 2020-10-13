@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Capstone Braille</string>
+    <string name="button_select_image">Select Image</string>
+    <string name="button_capture_image">Capture Image</string>
+    <string name="main_image_description">Main Image.</string>
+    <string name="button_detect_objects">Detect Objects</string>
+    <string name="button_detect_text">Detect Text</string>
+    <string name="text_detection_start">Text Detection Started!</string>
+    <string name="text_detection_successful">Text Detected Successfully!</string>
+    <string name="text_detect_error">Error while detecting text!</string>
+    <string name="detected_text_in_english_heading">Detected Text in English</string>
+    <string name="mapped_to_grade_1_braille_heading">Mapped to Grade 1 Braille</string>
+</resources>
