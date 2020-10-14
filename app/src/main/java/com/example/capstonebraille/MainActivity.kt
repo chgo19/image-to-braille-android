@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         showToast(objectsString.toString())
-        val textResultIntent = Intent(this, DisplayTextResultActivity::class.java).apply {
+        val textResultIntent = Intent(this, DisplayObjectDetectionResult::class.java).apply {
             putExtra(TEXT_MESSAGE, objectsString.toString())
         }
         startActivity(textResultIntent)
