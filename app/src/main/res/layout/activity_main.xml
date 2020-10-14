@@ -1,59 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
-
-    <Button
-        android:id="@+id/button_select_image"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:onClick="selectImage"
-        android:text="@string/button_select_image"
-        app:layout_constraintBottom_toTopOf="@+id/button_capture_image"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/button_capture_image"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:onClick="captureImage"
-        android:text="@string/button_capture_image"
-        app:layout_constraintBottom_toTopOf="@+id/button_detect_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/imageView_main"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="5"
         android:contentDescription="@string/main_image_description"
-        app:layout_constraintBottom_toTopOf="@+id/button_select_image"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="20dp"
         app:srcCompat="@drawable/ic_launcher_background" />
 
-    <Button
-        android:id="@+id/button_detect_objects"
-        android:layout_width="0dp"
+    <ScrollView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="detectObjects"
-        android:text="@string/button_detect_objects"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_weight="1">
 
-    <Button
-        android:id="@+id/button_detect_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:onClick="detectText"
-        android:text="@string/button_detect_text"
-        app:layout_constraintBottom_toTopOf="@+id/button_detect_objects"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/button_select_image"
+                style="@style/Widget.AppCompat.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:background="@color/colorPrimary"
+                android:onClick="selectImage"
+                android:text="@string/button_select_image"
+                android:textColor="@android:color/white" />
+
+            <Button
+                android:id="@+id/button_capture_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:background="@color/colorPrimary"
+                android:onClick="captureImage"
+                android:text="@string/button_capture_image"
+                android:textColor="@android:color/white" />
+
+            <Button
+                android:id="@+id/button_detect_text"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:background="@color/colorPrimary"
+                android:onClick="detectText"
+                android:text="@string/button_detect_text"
+                android:textColor="@android:color/white" />
+
+            <Button
+                android:id="@+id/button_detect_objects"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:background="@color/colorPrimary"
+                android:onClick="detectObjects"
+                android:text="@string/button_detect_objects"
+                android:textColor="@android:color/white" />
+
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

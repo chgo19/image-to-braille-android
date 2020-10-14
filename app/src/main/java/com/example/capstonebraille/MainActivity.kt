@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun captureImage(view: View) {
-        showToast(getString(R.string.not_yet_implemented))
+        showToast(getString(R.string.not_yet_implemented), Toast.LENGTH_LONG)
     }
 
     fun detectText(view: View) {
@@ -139,7 +139,7 @@ class MainActivity : AppCompatActivity() {
         startActivity(textResultIntent)
     }
 
-    private fun showToast(s: String) {
-        Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
+    private fun showToast(s: String, length: Int = Toast.LENGTH_SHORT) {
+        Toast.makeText(this, s, length).show()
     }
 }
