@@ -7,11 +7,13 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.google.mlkit.common.model.LocalModel
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.objects.DetectedObject
@@ -20,6 +22,7 @@ import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import com.google.mlkit.vision.objects.defaults.PredefinedCategory
 import com.google.mlkit.vision.text.TextRecognition
+import java.io.File
 import java.lang.Exception
 
 const val TEXT_MESSAGE = "com.example.capstonebraille.TEXT"
@@ -35,8 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var imageViewMainUri: Uri
 
     private var _captureIntent = 102
-    var capture_uri: Uri? = null
-    private val PERMISSION_CODE = 1000;
+    private lateinit var captureFile: File
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,25 +55,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (resultCode == RESULT_OK && requestCode == _captureIntent) {
-            imageViewMainUri = capture_uri!!
+            imageViewMainUri = Uri.fromFile(captureFile)
             imageViewMain.setImageURI(imageViewMainUri)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        //called when user presses ALLOW or DENY from Permission Request Popup
-        when(requestCode){
-            PERMISSION_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] ==
-                    PackageManager.PERMISSION_GRANTED){
-                    //permission from popup was granted
-                    openCamera()
-                }
-                else{
-                    //permission from popup was denied
-                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-                }
-            }
         }
     }
 
@@ -82,39 +67,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun captureImage(view: View) {
-//        showToast(getString(R.string.not_yet_implemented), Toast.LENGTH_LONG)
-        //if system os is Marshmallow or Above, we need to request runtime permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            if (checkSelfPermission(Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_DENIED ||
-                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_DENIED){
-                //permission was not enabled
-                val permission = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                //show popup to request permission
-                requestPermissions(permission, PERMISSION_CODE)
-            }
-            else{
-                //permission already granted
-                openCamera()
-            }
-        }
-        else{
-            //system os is < marshmallow
-            openCamera()
-        }
+        val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        captureFile = getCaptureFile("braille.jpg")
+
+        val fileProvider = FileProvider.getUriForFile(
+            this,
+            "com.example.capstonebraille.fileprovider",
+            captureFile
+        )
+        captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider)
+        startActivityForResult(captureIntent, _captureIntent)
     }
 
-    private fun openCamera() {
-        val values = ContentValues()
-        values.put(MediaStore.Images.Media.TITLE, "New Picture")
-        values.put(MediaStore.Images.Media.DESCRIPTION, "From the Camera")
-        capture_uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-
-        //camera intent
-        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, capture_uri)
-        startActivityForResult(cameraIntent, _captureIntent)
+    private fun getCaptureFile(fileName: String): File {
+        val storageDirectory = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(fileName, ".jpg", storageDirectory)
     }
 
     fun detectText(view: View) {
