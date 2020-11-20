@@ -2,9 +2,13 @@ package com.example.capstonebraille
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.widget.TextView
+import android.widget.Toast
+import java.util.*
 
 class DisplayTextResultActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_display_text_result)
@@ -13,7 +17,6 @@ class DisplayTextResultActivity : AppCompatActivity() {
         val textViewEnglish = findViewById<TextView>(R.id.textView_english).apply {
             text = message
         }
-
 
         val re = Regex("[^ A-Za-z0-9\n]")
         val filterMessage = re.replace(message, "")

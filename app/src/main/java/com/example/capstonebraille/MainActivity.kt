@@ -1,14 +1,12 @@
 package com.example.capstonebraille
 
-import android.Manifest
-import android.content.ContentValues
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
@@ -19,11 +17,11 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.objects.DetectedObject
 import com.google.mlkit.vision.objects.ObjectDetection
 import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions
-import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
-import com.google.mlkit.vision.objects.defaults.PredefinedCategory
+import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import java.io.File
 import java.lang.Exception
+import java.util.*
 
 const val TEXT_MESSAGE = "com.example.capstonebraille.TEXT"
 
@@ -31,7 +29,7 @@ const val ENGLISH = " A1B'K2L@CIF/MSP\"E3H9O6R^DJG>NTQ,*5<-U8V.%[$+X!&;:4\\0Z7(_
 const val BRAILLE = "⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿\n"
 val MAP = ENGLISH.zip(BRAILLE).toMap()
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private var _selectIntent = 101
     private lateinit var imageViewMain: ImageView
@@ -40,11 +38,20 @@ class MainActivity : AppCompatActivity() {
     private var _captureIntent = 102
     private lateinit var captureFile: File
 
+    private lateinit var mTTS: TextToSpeech
+    private var _textResult = "textRes"
+    lateinit var detectedText: com.google.mlkit.vision.text.Text
+
+    private var _objectResult = "objectRes"
+    lateinit var detectedObjects: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         imageViewMain = findViewById(R.id.imageView_main)
+
+        mTTS = TextToSpeech(this, this)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -86,6 +93,8 @@ class MainActivity : AppCompatActivity() {
 
     fun detectText(view: View) {
         showToast(getString(R.string.text_detection_start))
+        saySomething(getString(R.string.text_detection_start))
+
         val image: InputImage
         try {
             image = InputImage.fromFilePath(this, imageViewMainUri)
@@ -95,7 +104,10 @@ class MainActivity : AppCompatActivity() {
                 .addOnSuccessListener { text ->
                     // Task completed successfully
                     showToast(getString(R.string.text_detection_successful))
-                    showDetectTextResult(text)
+//                    showDetectTextResult(text)
+                    detectedText = text
+                    saySomething(getString(R.string.text_detection_successful))
+                    saySomething(text.text, _textResult)
                 }
                 .addOnFailureListener { e ->
                     // Task failed with an exception
@@ -104,6 +116,7 @@ class MainActivity : AppCompatActivity() {
                 }
         } catch (e: Exception) {
             showToast(getString(R.string.text_detect_error))
+            saySomething(getString(R.string.text_detect_error))
             e.printStackTrace()
         }
     }
@@ -116,6 +129,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun detectObjects(view: View) {
+        showToast(getString(R.string.object_detection_start))
+        saySomething(getString(R.string.object_detection_start))
+
         val image: InputImage
         try {
             image = InputImage.fromFilePath(this, imageViewMainUri)
@@ -133,7 +149,6 @@ class MainActivity : AppCompatActivity() {
                     .setMaxPerObjectLabelCount(3)
                     .build()
 
-//            showToast("here")
             val objectDetector = ObjectDetection.getClient(customObjectDetectorOptions)
 
             objectDetector.process(image)
@@ -143,33 +158,84 @@ class MainActivity : AppCompatActivity() {
                 }
                 .addOnSuccessListener { detectedObjects ->
                     // Task completed successfully
-                    showDetectObjectsResult(detectedObjects)
+                    speakDetectObjectsResult(detectedObjects)
                 }
         } catch (e: Exception) {
             showToast(getString(R.string.error_detecting_objects))
+            saySomething(getString(R.string.error_detecting_objects))
             e.printStackTrace()
         }
     }
 
-    private fun showDetectObjectsResult(results: MutableList<DetectedObject>) {
+    private fun speakDetectObjectsResult(results: MutableList<DetectedObject>) {
         val objectsString = StringBuilder()
         for (detectedObject in results) {
             for (label in detectedObject.labels) {
-                val confidence = label.confidence
-//                if (confidence > 0) {
                 objectsString.append(label.text)
                 objectsString.append("\n")
-//                }
             }
         }
-        showToast(objectsString.toString())
+        showToast(getString(R.string.object_detection_successful))
+        saySomething(getString(R.string.object_detection_successful))
+
+        detectedObjects = objectsString.toString()
+        saySomething(detectedObjects, _objectResult)
+    }
+
+    private fun showObjectDetectionResult() {
         val textResultIntent = Intent(this, DisplayObjectDetectionResult::class.java).apply {
-            putExtra(TEXT_MESSAGE, objectsString.toString())
+            putExtra(TEXT_MESSAGE, detectedObjects)
         }
         startActivity(textResultIntent)
     }
 
     private fun showToast(s: String, length: Int = Toast.LENGTH_SHORT) {
         Toast.makeText(this, s, length).show()
+    }
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            mTTS.language = Locale.getDefault()
+            mTTS.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+
+                override fun onDone(utteranceId: String?) {
+                    //do whatever you want when TTS finish speaking.
+                    if (utteranceId == _textResult) {
+                        showDetectTextResult(detectedText)
+                    }
+
+                    if (utteranceId == _objectResult) {
+                        showObjectDetectionResult()
+                    }
+                }
+
+                override fun onError(utteranceId: String?) {
+                    //do whatever you want if TTS makes an error.
+                }
+
+                override fun onStart(utteranceId: String?) {
+                    //do whatever you want when TTS start speaking.
+                }
+            })
+        } else {
+            showToast("TTS initialization failed!!")
+        }
+    }
+
+    private fun saySomething(something: String, id: String = "ID", queueMode: Int = TextToSpeech.QUEUE_ADD) {
+        val speechStatus = mTTS.speak(something, queueMode, null, id)
+        if (speechStatus == TextToSpeech.ERROR) {
+            Toast.makeText(this, "Cant use the Text to speech.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onDestroy() {
+        mTTS.shutdown()
+        super.onDestroy()
+    }
+
+    override fun onPause() {
+        mTTS.stop()
+        super.onPause()
     }
 }
