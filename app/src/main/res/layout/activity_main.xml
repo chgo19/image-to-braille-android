@@ -69,6 +69,16 @@
                 android:text="@string/button_detect_objects"
                 android:textColor="@android:color/white" />
 
+            <Button
+                android:id="@+id/btnSpeak"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:background="@color/colorPrimary"
+                android:onClick="getSpeechInput"
+                android:text="@string/button_voice_command"
+                android:textColor="@android:color/white" />
+
 
         </LinearLayout>
     </ScrollView>

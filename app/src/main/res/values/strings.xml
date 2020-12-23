@@ -18,4 +18,5 @@
     <string name="in_english">In English</string>
     <string name="in_braille">In Braille</string>
     <string name="text_detection_results_heading">Text Detection Results</string>
+    <string name="button_voice_command">Voice Command</string>
 </resources>

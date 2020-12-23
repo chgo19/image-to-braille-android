@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.view.View
@@ -45,6 +46,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var _objectResult = "objectRes"
     lateinit var detectedObjects: String
 
+    private var _sttIntent = 103
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -64,6 +67,24 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (resultCode == RESULT_OK && requestCode == _captureIntent) {
             imageViewMainUri = Uri.fromFile(captureFile)
             imageViewMain.setImageURI(imageViewMainUri)
+        }
+
+        if (resultCode == RESULT_OK && requestCode == _sttIntent && data != null) {
+            val result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val text = result?.get(0)
+            startCommand(text)
+        }
+    }
+
+    private fun startCommand(text: String?) {
+        if (text == "select image") {
+            selectImage(imageViewMain)
+        } else if (text == "capture image") {
+            captureImage(imageViewMain)
+        } else if (text == "detect text") {
+            detectText(imageViewMain)
+        } else if (text == "detect objects" || text == "detect objects") {
+            detectObjects(imageViewMain)
         }
     }
 
@@ -222,7 +243,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun saySomething(something: String, id: String = "ID", queueMode: Int = TextToSpeech.QUEUE_ADD) {
+    private fun saySomething(
+        something: String,
+        id: String = "ID",
+        queueMode: Int = TextToSpeech.QUEUE_ADD
+    ) {
         val speechStatus = mTTS.speak(something, queueMode, null, id)
         if (speechStatus == TextToSpeech.ERROR) {
             Toast.makeText(this, "Cant use the Text to speech.", Toast.LENGTH_LONG).show()
@@ -237,5 +262,25 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onPause() {
         mTTS.stop()
         super.onPause()
+    }
+
+    fun getSpeechInput(view: View) {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        intent.putExtra(
+            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        )
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivityForResult(intent, _sttIntent)
+        } else {
+            Toast.makeText(
+                this,
+                "Your Device Doesn't Support Speech Input",
+                Toast.LENGTH_SHORT
+            )
+                .show()
+        }
     }
 }
